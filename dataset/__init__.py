@@ -4,6 +4,8 @@ import requests
 import shutil
 import sys
 import scipy.io as sio
+import numpy as np
+import matplotlib.pyplot as plt
 
 BASE_URL = 'http://ufldl.stanford.edu/housenumbers'
 TRAIN_DATA = 'train_32x32.mat'
@@ -64,3 +66,24 @@ class SVHN:
         datafile = os.path.join(self.data_dir, ALL_DATA[t])
         data = sio.loadmat(datafile)
         return data['X'].transpose(3, 0, 1, 2), data['y']
+
+    def visualize(self, X, y):
+        """Visualize the dataset."""
+        imidx = []
+        labels = np.unique(y)
+
+        for label in labels:
+            for i in range(y.shape[0]):
+                if y[i] == label:
+                    imidx.append(i)
+                    break
+
+        for i, label in enumerate(labels):
+            plt.subplot(2, 5, i+1)
+            img = X[imidx[i]]
+            plt.imshow(img)
+            plt.xlabel('%s' % label)
+
+        plt.tight_layout()
+        plt.show()
+
