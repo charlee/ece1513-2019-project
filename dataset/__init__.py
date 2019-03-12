@@ -3,18 +3,22 @@ import hashlib
 import requests
 import shutil
 import sys
-import tarfile
+import scipy.io as sio
 
 BASE_URL = 'http://ufldl.stanford.edu/housenumbers'
-TRAIN_DATA = 'train.tar.gz'
-TEST_DATA = 'test.tar.gz'
-EXTRA_DATA= 'extra.tar.gz'
-ALL_DATA = [TRAIN_DATA, TEST_DATA, EXTRA_DATA]
+TRAIN_DATA = 'train_32x32.mat'
+TEST_DATA = 'test_32x32.mat'
+EXTRA_DATA= 'extra_32x32.mat'
+ALL_DATA = {
+    'train': TRAIN_DATA, 
+    'test': TEST_DATA, 
+    'extra': EXTRA_DATA,
+}
 
 MD5 = {
-    'extra.tar.gz': '606f41243d71ca4d5fe66dbaf1f02bee',
-    'test.tar.gz': '790d9c8d42f1fcbd219b59956c853a81',
-    'train.tar.gz': 'a649f4cb15c35520e8a8c342d4c0005a',
+    'train_32x32.mat': 'e26dedcc434d2e4c54c9b2d4a06d8373',
+    'test_32x32.mat': 'eb5a983be6a315427106f1b164d9cef3',
+    'extra_32x32.mat': 'a93ce644f1a588dc4d68dda5feec44a7',
 }
 
 
@@ -22,7 +26,7 @@ def show_log(s):
     print(s, end='')
     sys.stdout.flush()
 
-class HouseNumbers:
+class SVHN:
 
     def __init__(self):
         cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,31 +39,12 @@ class HouseNumbers:
             os.makedirs(self.data_dir)
             show_log('done.\n')
 
-    def md5checksum(self, file):
-        """Check file MD5 sum."""
-        hash_md5 = hashlib.md5()
-        with open(file, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
-
     def ensure_datafiles(self):
         """Download data files."""
         self.ensure_data_dir()
 
-        for file in ALL_DATA:
+        for file in ALL_DATA.values():
             file_path = os.path.join(self.data_dir, file)
-
-            if os.path.exists(file_path):
-                # Check if MD5 matches
-                show_log('Checking MD5 of %s...' % file)
-                md5sum = self.md5checksum(file_path)
-                if md5sum != MD5.get(file):
-                    show_log('FAILED, remove for redownload\n')
-                    os.remove(file_path)
-                else:
-                    show_log('done.\n')
-                    continue
 
             if not os.path.exists(file_path):
                 file_url = '%s/%s' % (BASE_URL, file)
@@ -73,19 +58,9 @@ class HouseNumbers:
                     show_log('FAILED.\n')
                     return
 
-    def extract_data(self):
-        """Extract tar.gz data to data dir."""
-        datadirs = [f.replace('.tar.gz', '') for f in ALL_DATA]
-        if all(os.path.exists(os.path.join(self.data_dir, d)) for d in datadirs):
-            return
-
-        show_log('Some data dirs not exist.\n')
+    def load_data(self, t):
+        """Decode mat file to npz."""
         self.ensure_datafiles()
-        for file in ALL_DATA:
-            mat = os.path.join(self.data_dir, file.replace('.tar.gz', ''), 'digitStruct.mat')
-            if not os.path.exists(mat):
-                show_log('Extracting %s...' % file)
-                tar = tarfile.open(os.path.join(self.data_dir, file))
-                tar.extractall(path=self.data_dir)
-                show_log('done.\n')
-
+        datafile = os.path.join(self.data_dir, ALL_DATA[t])
+        data = sio.loadmat(datafile)
+        return data['X'].transpose(3, 0, 1, 2), data['y']

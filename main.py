@@ -1,3 +1,5 @@
-from dataset import HouseNumbers
+from dataset import SVHN
 
-HouseNumbers().extract_data()
+svhn = SVHN()
+
+X, y = svhn.load_data('train')
