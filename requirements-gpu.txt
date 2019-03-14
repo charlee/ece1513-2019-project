@@ -1,1 +1,8 @@
-tensorflow-gpu==1.13.1
+tensorflow-gpu==1.12.0
+requests==2.21.0
+ipdb==0.11
+ipython==7.3.0
+ipython-genutils==0.2.0
+numpy==1.16.2
+scipy==1.2.1
+matplotlib==3.0.3

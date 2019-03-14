@@ -33,7 +33,7 @@ class PerfLogger:
             with open(filename, 'a') as f:
                 f.write(s.getvalue())
         else:
-            writer.writeheader()
+            writer.writerow(self.columns)
             writer.writerows(self.loss_data)
             with open(filename, 'w') as f:
                 f.write(s.getvalue())
