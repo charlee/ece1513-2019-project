@@ -1,3 +1,4 @@
+import numpy as np
 from dataset import SVHN
 from models.cnn import CNN, ConvLayer, ReLULayer, BatchNormLayer, PoolLayer, FlattenLayer, FCLayer, DropoutLayer
 
@@ -21,16 +22,19 @@ def make_cnn(model_path):
             ReLULayer(),
             BatchNormLayer(),
             PoolLayer(2),
-            FlattenLayer(32 * 32 / (2 * 2) * 32),
-            FCLayer(32 * 32 / (2 * 2) * 32, 32 * 32),
+            FlattenLayer(),
+            FCLayer(32 * 32, name='fc1'),
             DropoutLayer(0.5),
             ReLULayer(),
-            FCLayer(32 * 32, 10),
+            FCLayer(10, name='fc2'),
         ]
     )
 
     X_train, y_train, X_test, y_test = load_data()
+    y_train = np.reshape(y_train, (-1,))
+    y_test = np.reshape(y_test, (-1,))
     cnn.set_data(X_train, y_train, X_test, y_test)
+    cnn.init_session()
     cnn.train()
 
 

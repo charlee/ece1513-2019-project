@@ -1,5 +1,7 @@
 import os
 import sys
+import csv
+from io import StringIO
 
 def create_dir(path):
     if os.path.exists(path):
@@ -11,13 +13,11 @@ class PerfLogger:
 
     def __init__(self, columns):
         self.columns = columns
-        self.loss_data = pd.DataFrame(columns=['epoch', *columns])
+        self.loss_data = []
 
     def append(self, epoch, data, print_log=False):
-        self.loss_data = self.loss_data.append({
-            'epoch': epoch,
-            **data,
-        }, ignore_index=True)
+        d = [data.get(c, '') for c in self.columns]
+        self.loss_data.append([epoch, *d])
 
         if print_log:
             msg = ['Epoch: %d' % epoch]
@@ -26,13 +26,17 @@ class PerfLogger:
             print(', '.join(msg))
 
     def save(self, filename):
+        s = StringIO()
+        writer = csv.writer(s)
         if os.path.exists(filename):
-            s = StringIO()
-            self.loss_data.to_csv(s, index=False, header=False)
+            writer.writerows(self.loss_data)
             with open(filename, 'a') as f:
                 f.write(s.getvalue())
         else:
-            self.loss_data.to_csv(filename, index=False)
+            writer.writeheader()
+            writer.writerows(self.loss_data)
+            with open(filename, 'w') as f:
+                f.write(s.getvalue())
 
         # Clear data
-        self.loss_data = self.loss_data.iloc[0:0]
+        self.loss_data = []

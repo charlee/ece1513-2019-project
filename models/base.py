@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from .utils import create_dir
+from .utils import create_dir, PerfLogger
 
 class Model:
 
@@ -71,7 +71,7 @@ class Model:
 
     def get_feed_dict(self, X, y):
         feed = {}
-        for layer in layers:
+        for layer in self.layers:
             feed.update(layer.get_feed_dict())
         feed.update({
             self.X: X,

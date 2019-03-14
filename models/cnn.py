@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 from .base import Model
 
@@ -42,18 +43,18 @@ class ConvLayer(Layer):
         super().__init__(kernel_size=kernel_size, n_filters=n_filters, stride=stride, name=name)
 
     def fprop(self, X):
-        self.make_W([self.kernel_size, self.kernel_size, 1, self.n_filters])
+        self.make_W([self.kernel_size, self.kernel_size, X.shape[-1], self.n_filters])
         self.make_b([self.n_filters])
 
         conv = tf.nn.conv2d(X, self.W, strides=(1, self.stride, self.stride, 1), padding='SAME')
-        return tf.add(self.b, name=self.name)
+        return tf.add(conv, self.b, name=self.name)
 
 class PoolLayer(Layer):
     def __init__(self, pool_size, name='pool'):
         super().__init__(pool_size=pool_size, name=name)
 
     def fprop(self, X):
-        shape = [1, self.pool_size, self.pool_size, 1],
+        shape = [1, self.pool_size, self.pool_size, 1]
         return tf.nn.max_pool(X, ksize=shape, strides=shape, padding='SAME', name=self.name)
 
 class BatchNormLayer(Layer):
@@ -67,22 +68,24 @@ class BatchNormLayer(Layer):
 
 
 class FlattenLayer(Layer):
-    def __init__(self, output_size, name='flatten'):
-        super().__init__(output_size=output_size, name=name)
+    def __init__(self, name='flatten'):
+        super().__init__(name=name)
 
     def fprop(self, X):
-        return tf.reshape(X, shape=(-1, self.output_size), name=self.name)
+        output_size = np.prod(X.shape[1:])
+        return tf.reshape(X, shape=(-1, output_size), name=self.name)
 
 
 class FCLayer(Layer):
-    def __init__(self, input_size, output_size, name='fc'):
-        super().__init__(input_size=input_size, output_size=output_size, name=name)
+    def __init__(self, output_size, name='fc'):
+        super().__init__(output_size=output_size, name=name)
 
     def fprop(self, X):
-        self.make_W([input_size, output_size])
-        self.make_b([output_size])
+        input_size = X.shape[-1]
+        self.make_W([input_size, self.output_size])
+        self.make_b([self.output_size])
 
-        return tf.add(tf.matmul(X, self.W), self.b, name=self.name)
+        return tf.add(tf.matmul(X, self.W), self.b)
 
 
 class DropoutLayer(Layer):
@@ -94,7 +97,7 @@ class DropoutLayer(Layer):
         return tf.nn.dropout(X, keep_prob=self.keep_prop_tensor)
 
     def get_feed_dict(self):
-        if self.model == 'train':
+        if self.model.phase == 'train':
             return {self.keep_prop_tensor: self.keep_prob}
         else:
             return {self.keep_prop_tensor: 1.0}
