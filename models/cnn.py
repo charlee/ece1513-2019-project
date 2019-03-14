@@ -1,4 +1,6 @@
 import tensorflow as tf
+import random
+import string
 import numpy as np
 
 from .base import Model
@@ -6,6 +8,7 @@ from .base import Model
 
 class Layer:
     def __init__(self, **kwargs):
+        self.hash = ''.join(random.choice(string.ascii_lowercase) for _ in range(4))
         self.phase = 'train'
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -16,17 +19,17 @@ class Layer:
     def fprop(self, X):
         pass
 
-    def make_var(self, name, shape):
+    def make_var(self, shape, name):
         return tf.get_variable(
             name, dtype=tf.float32, shape=shape,
             initializer=tf.contrib.layers.xavier_initializer()
         )
 
-    def make_W(self, shape):
-        self.W = self.make_var('W_%s' % self.name, shape)
+    def make_W(self, shape, name):
+        self.W = self.make_var(shape, 'W_%s' % name)
 
-    def make_b(self, shape):
-        self.b = self.make_var('b_%s' % self.name, shape)
+    def make_b(self, shape, name):
+        self.b = self.make_var(shape, 'b_%s' % name)
 
     def get_W(self):
         return getattr(self, 'W', None)
@@ -39,62 +42,64 @@ class Layer:
 
 
 class ConvLayer(Layer):
-    def __init__(self, kernel_size, n_filters, stride, name='conv'):
-        super().__init__(kernel_size=kernel_size, n_filters=n_filters, stride=stride, name=name)
+    def __init__(self, kernel_size, n_filters, stride):
+        super().__init__(kernel_size=kernel_size, n_filters=n_filters, stride=stride)
 
     def fprop(self, X):
-        self.make_W([self.kernel_size, self.kernel_size, X.shape[-1], self.n_filters])
-        self.make_b([self.n_filters])
+        name = 'conv_%s' % self.hash
+        with tf.name_scope(name):
+            self.make_W([self.kernel_size, self.kernel_size, X.shape[-1], self.n_filters], name=name)
+            self.make_b([self.n_filters], name=name)
+            strides = (1, self.stride, self.stride, 1)
 
-        conv = tf.nn.conv2d(X, self.W, strides=(1, self.stride, self.stride, 1), padding='SAME')
-        return tf.add(conv, self.b, name=self.name)
+            return tf.nn.conv2d(X, self.W, strides=strides, padding='SAME') + self.b
 
 class PoolLayer(Layer):
-    def __init__(self, pool_size, name='pool'):
-        super().__init__(pool_size=pool_size, name=name)
+    def __init__(self, pool_size):
+        super().__init__(pool_size=pool_size)
 
     def fprop(self, X):
-        shape = [1, self.pool_size, self.pool_size, 1]
-        return tf.nn.max_pool(X, ksize=shape, strides=shape, padding='SAME', name=self.name)
+        with tf.name_scope('pool_%s' % self.hash):
+            shape = [1, self.pool_size, self.pool_size, 1]
+            return tf.nn.max_pool(X, ksize=shape, strides=shape, padding='SAME')
 
 class BatchNormLayer(Layer):
-    def __init__(self, name='batch_norm'):
-        super().__init__(name=name)
-
     def fprop(self, X):
-        mean, var = tf.nn.moments(X, axes=[0])
-        return tf.nn.batch_normalization(
-               X, mean, var, None, None, 1e-9, name=self.name)
+        with tf.name_scope('batch_norm_%s' % self.hash):
+            mean, var = tf.nn.moments(X, axes=[0])
+            return tf.nn.batch_normalization(
+                X, mean, var, None, None, 1e-9)
 
 
 class FlattenLayer(Layer):
-    def __init__(self, name='flatten'):
-        super().__init__(name=name)
-
     def fprop(self, X):
-        output_size = np.prod(X.shape[1:])
-        return tf.reshape(X, shape=(-1, output_size), name=self.name)
+        with tf.name_scope('flatten_%s' % self.hash):
+            output_size = np.prod(X.shape[1:])
+            return tf.reshape(X, shape=(-1, output_size))
 
 
 class FCLayer(Layer):
-    def __init__(self, output_size, name='fc'):
-        super().__init__(output_size=output_size, name=name)
+    def __init__(self, output_size):
+        super().__init__(output_size=output_size)
 
     def fprop(self, X):
-        input_size = X.shape[-1]
-        self.make_W([input_size, self.output_size])
-        self.make_b([self.output_size])
+        name = 'fc_%s' % self.hash
+        with tf.name_scope(name):
+            input_size = X.shape[-1]
+            self.make_W([input_size, self.output_size], name=name)
+            self.make_b([self.output_size], name=name)
 
-        return tf.add(tf.matmul(X, self.W), self.b)
+            return tf.matmul(X, self.W) + self.b
 
 
 class DropoutLayer(Layer):
-    def __init__(self, keep_prob, name='dropout'):
-        super().__init__(keep_prob=keep_prob, name=name)
+    def __init__(self, keep_prob):
+        super().__init__(keep_prob=keep_prob)
         self.keep_prop_tensor = tf.placeholder(tf.float32, shape=())
     
     def fprop(self, X):
-        return tf.nn.dropout(X, keep_prob=self.keep_prop_tensor)
+        with tf.name_scope('dropout_%s' % self.hash):
+            return tf.nn.dropout(X, keep_prob=self.keep_prop_tensor)
 
     def get_feed_dict(self):
         if self.model.phase == 'train':
@@ -104,20 +109,9 @@ class DropoutLayer(Layer):
 
 
 class ReLULayer(Layer):
-    def __init__(self, name='relu'):
-        super().__init__(name=name)
-
     def fprop(self, X):
-        return tf.nn.relu(X, name=self.name)
-
-
-
-class SoftmaxLayer(Layer):
-    def __init__(self, name='relu'):
-        super().__init__(name=name)
-
-    def fprop(self, X):
-        return tf.nn.softmax(X, name=self.name)
+        with tf.name_scope('relu_%s' % self.hash):
+            return tf.nn.relu(X)
 
 
 class CNN(Model):

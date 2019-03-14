@@ -18,15 +18,15 @@ def make_cnn(model_path):
         image_shape=(32, 32, 3),
         n_classes=10,
         layers=[
-            ConvLayer(3, 32, 1, name='conv1'),
+            ConvLayer(3, 32, 1),
             ReLULayer(),
             BatchNormLayer(),
             PoolLayer(2),
             FlattenLayer(),
-            FCLayer(32 * 32, name='fc1'),
+            FCLayer(32 * 32),
             DropoutLayer(0.5),
             ReLULayer(),
-            FCLayer(10, name='fc2'),
+            FCLayer(10),
         ]
     )
 
