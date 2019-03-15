@@ -1,6 +1,7 @@
 import numpy as np
 from dataset import SVHN
-from models.cnn import CNN, ConvLayer, ReLULayer, BatchNormLayer, PoolLayer, FlattenLayer, FCLayer, DropoutLayer
+from models.cnn import CNN
+from models.layers import Conv2D, BatchNorm, MaxPooling2D, Flatten, Dense, Dropout
 
 
 def load_data():
@@ -18,15 +19,13 @@ def make_cnn(model_path):
         image_shape=(32, 32, 3),
         n_classes=10,
         layers=[
-            ConvLayer(3, 32, 1),
-            ReLULayer(),
-            BatchNormLayer(),
-            PoolLayer(2),
-            FlattenLayer(),
-            FCLayer(32 * 32),
-            DropoutLayer(0.5),
-            ReLULayer(),
-            FCLayer(10),
+            Conv2D(32, (3, 3), activation='relu'),
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Flatten(),
+            Dense(32 * 32, activation='relu'),
+            Dropout(0.5),
+            Dense(10),
         ]
     )
 

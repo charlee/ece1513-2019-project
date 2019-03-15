@@ -93,6 +93,8 @@ class Model:
             'test_loss', 'test_accuracy',
         ])
 
+        self.train_writer = tf.summary.FileWriter(os.path.join(self.logdir, 'train'), self.sess.graph)
+
         while self.epoch < epochs:
             self.run_epoch(batch_size=batch_size)
 
