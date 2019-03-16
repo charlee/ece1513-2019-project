@@ -6,14 +6,15 @@ import sys
 import scipy.io as sio
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image, ImageOps
 
 BASE_URL = 'http://ufldl.stanford.edu/housenumbers'
 TRAIN_DATA = 'train_32x32.mat'
 TEST_DATA = 'test_32x32.mat'
-EXTRA_DATA= 'extra_32x32.mat'
+EXTRA_DATA = 'extra_32x32.mat'
 ALL_DATA = {
-    'train': TRAIN_DATA, 
-    'test': TEST_DATA, 
+    'train': TRAIN_DATA,
+    'test': TEST_DATA,
     'extra': EXTRA_DATA,
 }
 
@@ -27,6 +28,7 @@ MD5 = {
 def show_log(s):
     print(s, end='')
     sys.stdout.flush()
+
 
 class SVHN:
 
@@ -50,7 +52,8 @@ class SVHN:
 
             if not os.path.exists(file_path):
                 file_url = '%s/%s' % (BASE_URL, file)
-                show_log('%s not found, downloading from %s...' % (file, file_url))
+                show_log('%s not found, downloading from %s...' %
+                         (file, file_url))
                 r = requests.get(file_url, stream=True)
                 if r.status_code == 200:
                     with open(file_path, 'wb') as f:
@@ -67,6 +70,23 @@ class SVHN:
         data = sio.loadmat(datafile)
         return data['X'].transpose(3, 0, 1, 2), data['y']
 
+    def load_preprocessed_data(self, t):
+        cache_file = os.path.join(self.data_dir, 'preprocessed_%s.npz' % t)
+        if not os.path.exists(cache_file):
+            X, y = self.load_data(t)
+
+            data = {'X': np.array([
+                np.array(
+                    ImageOps.autocontrast(Image.fromarray(x).convert('L'))
+                ) for x in X
+            ]), 'y': y}
+            np.savez(cache_file, **data)
+
+        else:
+            data = np.load(cache_file)
+
+        return data['X'], data['y']
+
     def visualize(self, X, y):
         """Visualize the dataset."""
         imidx = []
@@ -81,9 +101,8 @@ class SVHN:
         for i, label in enumerate(labels):
             plt.subplot(2, 5, i+1)
             img = X[imidx[i]]
-            plt.imshow(img)
+            plt.imshow(img, cmap='gray')
             plt.xlabel('%s' % label)
 
         plt.tight_layout()
         plt.show()
-

@@ -6,8 +6,10 @@ from models.layers import Conv2D, BatchNorm, MaxPooling2D, Flatten, Dense, Dropo
 
 def load_data():
     svhn = SVHN()
-    X_train, y_train = svhn.load_data('train')
-    X_test, y_test = svhn.load_data('test')
+    X_train, y_train = svhn.load_preprocessed_data('train')
+    X_test, y_test = svhn.load_preprocessed_data('test')
+
+    svhn.visualize(X_train, y_train)
 
     return X_train, y_train, X_test, y_test
 
@@ -32,12 +34,12 @@ def make_cnn(model_path):
     X_train, y_train, X_test, y_test = load_data()
     y_train = np.reshape(y_train, (-1,))
     y_test = np.reshape(y_test, (-1,))
-    cnn.set_data(X_train, y_train, X_test, y_test)
+    cnn.set_data(X_train[:1000], y_train[:1000], X_test[:100], y_test[:100])
     cnn.init_session()
     cnn.train()
 
 
-
-
 if __name__ == '__main__':
-    make_cnn('./model')
+    # make_cnn('./__model__')
+    X_train, y_train, X_test, y_test = load_data()
+
