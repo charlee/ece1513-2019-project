@@ -118,7 +118,7 @@ class Model:
         # Compute test loss / accuracy
         test_loss, test_accuracy = self.sess.run(
             [self.loss, self.accuracy],
-            feed_dict=self.get_feed_dict(X, y))
+            feed_dict=self.get_feed_dict(self.testData, self.testTarget))
 
         # Save to PerfLogger
         self.perf_logger.append(self.epoch, {
