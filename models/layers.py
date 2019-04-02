@@ -34,7 +34,7 @@ class Layer:
     def get_b(self):
         return getattr(self, 'b', None)
 
-    def get_feed_dict(self):
+    def get_feed_dict(self, phase='train'):
         return {}
 
 
@@ -112,8 +112,8 @@ class Dropout(Layer):
         with tf.name_scope('dropout_%s' % self.hash):
             return tf.nn.dropout(X, keep_prob=self.keep_prop_tensor)
 
-    def get_feed_dict(self):
-        if self.model.phase == 'train':
+    def get_feed_dict(self, phase='train'):
+        if phase == 'train':
             return {self.keep_prop_tensor: self.keep_prob}
         else:
             return {self.keep_prop_tensor: 1.0}

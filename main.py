@@ -32,6 +32,11 @@ def make_cnn(model_path):
         alpha=1e-6,
     )
 
+    return cnn
+
+
+if __name__ == '__main__':
+    cnn = make_cnn('./__model__')
     X_train, y_train, X_test, y_test = load_data()
 
     X_train = np.reshape(X_train, (*X_train.shape, 1))
@@ -43,12 +48,8 @@ def make_cnn(model_path):
     y_test[y_test == 10] = 0
     y_test = np.reshape(y_test, (-1,))
 
-    cnn.set_data(X_train[:1000], y_train[:1000], X_test[:100], y_test[:100])
+    cnn.set_data(X_train, y_train, X_test, y_test)
     cnn.init_session()
-    cnn.train()
+    cnn.train(batch_size=100, epochs=500)
 
-
-if __name__ == '__main__':
-    make_cnn('./__model__')
-    # X_train, y_train, X_test, y_test = load_data()
 

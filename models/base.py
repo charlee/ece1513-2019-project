@@ -69,10 +69,10 @@ class Model:
         self.sess.run(tf.global_variables_initializer())
         self.epoch = 0
 
-    def get_feed_dict(self, X, y):
+    def get_feed_dict(self, X, y, phase='train'):
         feed = {}
         for layer in self.layers:
-            feed.update(layer.get_feed_dict())
+            feed.update(layer.get_feed_dict(phase))
         feed.update({
             self.X: X,
             self.y: y,
@@ -98,7 +98,23 @@ class Model:
         while self.epoch < epochs:
             self.run_epoch(batch_size=batch_size)
 
-    def run_epoch(self, batch_size=32):
+    def compute_loss_accuracy(self, X, y, batch_size=100):
+        total_loss = 0
+        total_accuracy = 0
+        for X_batch, y_batch in self._next_batch(X, y, batch_size):
+            loss, accuracy = self.sess.run(
+                [self.loss, self.accuracy],
+                feed_dict=self.get_feed_dict(X_batch, y_batch, 'test')
+            )
+
+            n = X_batch.shape[0]
+            total_loss += loss * n
+            total_accuracy += accuracy * n
+        
+        return total_loss / X.shape[0], total_accuracy / X.shape[0]
+
+
+    def run_epoch(self, batch_size=100):
         """Run one epoch of the training process.
         :param batch_size: Batch size.
         """
@@ -107,24 +123,19 @@ class Model:
 
         for X, y in self._next_batch(self.trainData, self.trainTarget, batch_size):
 
-            feed_dict = self.get_feed_dict(X, y)
+            feed_dict = self.get_feed_dict(X, y, 'train')
             self.sess.run(self.opt_op, feed_dict=feed_dict)
 
-        # Compute train loss / accuracy
-        train_loss, train_accuracy = self.sess.run(
-            [self.loss, self.accuracy],
-            feed_dict=feed_dict)
+        if self.epoch % 10 == 0:
+            # Compute train / test loss / accuracy
+            train_loss, train_accuracy = self.compute_loss_accuracy(self.trainData, self.trainTarget)
+            test_loss, test_accuracy = self.compute_loss_accuracy(self.testData, self.testTarget)
 
-        # Compute test loss / accuracy
-        test_loss, test_accuracy = self.sess.run(
-            [self.loss, self.accuracy],
-            feed_dict=self.get_feed_dict(self.testData, self.testTarget))
-
-        # Save to PerfLogger
-        self.perf_logger.append(self.epoch, {
-            'train_loss': train_loss,
-            'train_accuracy': train_accuracy,
-            'test_loss': test_loss,
-            'test_accuracy': test_accuracy,
-        }, print_log=True)
-        self.perf_logger.save(self.loss_file)
+            # Save to PerfLogger
+            self.perf_logger.append(self.epoch, {
+                'train_loss': train_loss,
+                'train_accuracy': train_accuracy,
+                'test_loss': test_loss,
+                'test_accuracy': test_accuracy,
+            }, print_log=True)
+            self.perf_logger.save(self.loss_file)
