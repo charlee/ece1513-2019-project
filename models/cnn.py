@@ -21,7 +21,6 @@ class CNN(Model):
 
         X = self.X
         for layer in layers:
-            layer.set_model(self)
             X = layer.fprop(X)
 
         with tf.name_scope('loss'):
