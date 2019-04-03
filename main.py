@@ -1,6 +1,7 @@
 import numpy as np
 from dataset import SVHN
 from models.cnn import CNN
+from models.logistic import LogisticRegression
 from models.layers import Conv2D, BatchNorm, MaxPooling2D, Flatten, Dense, Dropout
 
 
@@ -35,8 +36,16 @@ def make_cnn(model_path):
     return cnn
 
 
+def make_lr(model_path):
+    lr = LogisticRegression(model_path)
+    lr.build_graph(image_shape=(32, 32, 1), n_classes=10, alpha=1e-6)
+    
+    return lr
+
+
 if __name__ == '__main__':
-    cnn = make_cnn('./__model_2__')
+    # cnn = make_cnn('./__model_2__')
+    cnn = make_lr('./__model_3__')
     X_train, y_train, X_test, y_test = load_data()
 
     X_train = np.reshape(X_train, (*X_train.shape, 1))

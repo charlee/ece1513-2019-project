@@ -23,23 +23,6 @@ class CNN(Model):
         for layer in layers:
             X = layer.fprop(X)
 
-        with tf.name_scope('loss'):
-            # Loss w/ L2 regularization
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-                labels=self.y_onehot, logits=X))
-            
-            # L2 regularization
-            weights = [layer.get_W() for layer in self.layers]
-            reg = tf.add_n([tf.nn.l2_loss(W) for W in weights if W is not None])
-            self.loss = loss + l2 * reg
-
-        with tf.name_scope('optimize'):
-            self.opt_op = tf.train.AdamOptimizer(learning_rate=alpha).minimize(self.loss)
-
-        with tf.name_scope('predict'):
-            self.output = tf.nn.softmax(X)
-
-            self.predict = tf.argmax(self.output, axis=1)
-            self.accuracy = tf.reduce_mean(
-                tf.cast(tf.equal(self.predict, self.y), tf.float32)
-            )
+        self.make_softmax_loss(X, l2)
+        self.make_predict(X)
+        self.make_optimizer(alpha)

@@ -40,6 +40,38 @@ class Model:
         self.y = tf.placeholder(tf.int64, shape=(None,))
         self.y_onehot = tf.one_hot(self.y, n_classes)
 
+    def fprop(self):
+        X = self.X
+        for layer in self.layers:
+            X = layer.fprop(X)
+
+        return X
+
+    def make_softmax_loss(self, X, l2=None):
+        with tf.name_scope('loss'):
+            # Loss w/ L2 regularization
+            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels=self.y_onehot, logits=X))
+            
+            if l2 is not None:
+                # L2 regularization
+                weights = [layer.get_W() for layer in self.layers]
+                reg = tf.add_n([tf.nn.l2_loss(W) for W in weights if W is not None])
+                self.loss = loss + l2 * reg
+
+    def make_optimizer(self, learning_rate):
+        with tf.name_scope('optimize'):
+            self.opt_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
+
+    def make_predict(self, X):
+        with tf.name_scope('predict'):
+            self.output = tf.nn.softmax(X)
+
+            self.predict = tf.argmax(self.output, axis=1)
+            self.accuracy = tf.reduce_mean(
+                tf.cast(tf.equal(self.predict, self.y), tf.float32)
+            )
+
     def build_graph(self, *args, **kwargs):
         """Build the compute graph.
         Must set the following tensors:

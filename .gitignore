@@ -3,3 +3,4 @@
 __pycache__/
 __data__/
 __model__/
+__*__/
