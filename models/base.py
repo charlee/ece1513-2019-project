@@ -66,9 +66,10 @@ class Model:
         print('Model saved to %s.' % self.checkpoint_file)
 
     def restore_model(self):
-        saver = tf.train.Saver()
-        saver.restore(self.sess, self.checkpoint_file)
-        print('Model restored from %s.' % self.checkpoint_file)
+        if os.path.exists('%s.index' % self.checkpoint_file):
+            saver = tf.train.Saver()
+            saver.restore(self.sess, self.checkpoint_file)
+            print('Model restored from %s.' % self.checkpoint_file)
 
     def init_session(self):
         """Start a new training session.
