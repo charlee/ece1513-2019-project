@@ -19,9 +19,7 @@ class CNN(Model):
         self._make_input(image_shape, n_classes)
         self.layers = layers
 
-        X = self.X
-        for layer in layers:
-            X = layer.fprop(X)
+        X = self.fprop()
 
         self.make_softmax_loss(X, l2)
         self.make_predict(X)
