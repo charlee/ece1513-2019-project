@@ -14,8 +14,7 @@ class Model:
         create_dir(logdir)
         self.logdir = logdir
         self.loss_file = os.path.join(self.logdir, 'loss.csv')
-        self.epoch = 0
-        self.phase = 'train'
+        self.checkpoint_file = os.path.join(self.logdir, 'model.ckpt')
 
     def _shuffle(self, X, y):
         idx = np.arange(len(X))
@@ -61,6 +60,16 @@ class Model:
         self.testData = testData
         self.testTarget = testTarget
 
+    def save_model(self):
+        saver = tf.train.Saver()
+        saver.save(self.sess, self.checkpoint_file)
+        print('Model saved to %s.' % self.checkpoint_file)
+
+    def restore_model(self):
+        saver = tf.train.Saver()
+        saver.restore(self.sess, self.checkpoint_file)
+        print('Model restored from %s.' % self.checkpoint_file)
+
     def init_session(self):
         """Start a new training session.
         """
@@ -71,6 +80,8 @@ class Model:
         tf.set_random_seed(421)
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
+
+        self.restore_model()
 
     def get_feed_dict(self, X, y, phase='train'):
         feed = {}
@@ -98,6 +109,13 @@ class Model:
 
         for i in range(epochs):
             self.run_epoch(batch_size=batch_size)
+
+            # Save model every 100 epoch
+            if (i+1) % 100 == 0:
+                self.save_model()
+        
+        # Save model at the end of training
+        self.save_model()
 
     def compute_loss_accuracy(self, X, y, batch_size=100):
         total_loss = 0
