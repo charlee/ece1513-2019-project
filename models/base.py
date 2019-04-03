@@ -64,10 +64,13 @@ class Model:
     def init_session(self):
         """Start a new training session.
         """
+        # Create a tensor to store epoch so that global epoch can be saved in checkpoint
+        self.epoch = tf.get_variable('epoch', shape=(), initializer=tf.zeros_initializer)
+        self.inc_epoch = self.epoch.assign(self.epoch + 1)
+
         tf.set_random_seed(421)
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
-        self.epoch = 0
 
     def get_feed_dict(self, X, y, phase='train'):
         feed = {}
@@ -86,8 +89,6 @@ class Model:
         :param batch_size: Batch size.
         :param with_tensorboard: Whether output data for displaying in tensorboard.
         """
-        self.epoch = 0
-
         self.perf_logger = PerfLogger([
             'train_loss', 'train_accuracy',
             'test_loss', 'test_accuracy',
@@ -95,7 +96,7 @@ class Model:
 
         self.train_writer = tf.summary.FileWriter(os.path.join(self.logdir, 'train'), self.sess.graph)
 
-        while self.epoch < epochs:
+        for i in range(epochs):
             self.run_epoch(batch_size=batch_size)
 
     def compute_loss_accuracy(self, X, y, batch_size=100):
@@ -119,20 +120,20 @@ class Model:
         :param batch_size: Batch size.
         """
 
-        self.epoch += 1
+        epoch = self.sess.run(self.inc_epoch)
 
         for X, y in self._next_batch(self.trainData, self.trainTarget, batch_size):
 
             feed_dict = self.get_feed_dict(X, y, 'train')
             self.sess.run(self.opt_op, feed_dict=feed_dict)
 
-        if self.epoch % 10 == 0:
+        if epoch % 1 == 0:
             # Compute train / test loss / accuracy
             train_loss, train_accuracy = self.compute_loss_accuracy(self.trainData, self.trainTarget)
             test_loss, test_accuracy = self.compute_loss_accuracy(self.testData, self.testTarget)
 
             # Save to PerfLogger
-            self.perf_logger.append(self.epoch, {
+            self.perf_logger.append(epoch, {
                 'train_loss': train_loss,
                 'train_accuracy': train_accuracy,
                 'test_loss': test_loss,
