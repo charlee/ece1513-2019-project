@@ -1,7 +1,8 @@
+import sys
 import numpy as np
+import argparse
 from dataset import SVHN
-from models.cnn import CNN
-from models.logistic import LogisticRegression
+from models import Model
 from models.layers import Conv2D, BatchNorm, MaxPooling2D, Flatten, Dense, Dropout
 
 
@@ -14,9 +15,24 @@ def load_data():
 
     return X_train, y_train, X_test, y_test
 
+def make_nn(model_path):
+    nn = Model(model_path)
+    nn.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Flatten(),
+            Dense(32 * 32, activation='relu'),
+            Dense(10),
+        ],
+        alpha=1e-4,
+    )
+
+    return nn
+
 
 def make_cnn(model_path):
-    cnn = CNN(model_path)
+    cnn = Model(model_path)
 
     cnn.build_graph(
         image_shape=(32, 32, 1),
@@ -30,22 +46,50 @@ def make_cnn(model_path):
             Dropout(0.5),
             Dense(10),
         ],
-        alpha=1e-6,
+        alpha=1e-4,
     )
 
     return cnn
 
 
 def make_lr(model_path):
-    lr = LogisticRegression(model_path)
-    lr.build_graph(image_shape=(32, 32, 1), n_classes=10, alpha=1e-6)
-    
+    lr = Model(model_path)
+    lr.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Flatten(),
+            Dense(10),
+        ],
+        alpha=1e-4
+    )
+
     return lr
 
 
 if __name__ == '__main__':
-    # cnn = make_cnn('./__model_2__')
-    cnn = make_lr('./__model_3__')
+
+     # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn'],
+                        required=True, help='Hidden layer size.')
+    parser.add_argument('--path', type=str, nargs=1,
+                        required=True, help='Model and output data save path.')
+    parser.add_argument('--epochs', type=int, nargs=1,
+                        default=[200], help='Training epoches.')
+    args = parser.parse_args()
+
+    if args.model[0] == 'lr':
+        model = make_lr(args.path[0])
+    elif args.model[0] == 'nn':
+        model = make_nn(args.path[0])
+    elif args.model[0] == 'cnn':
+        model = make_cnn(args.path[0])
+    else:
+        print('Wrong model name!')
+        sys.exit(1)
+
+    # Load data
     X_train, y_train, X_test, y_test = load_data()
 
     X_train = np.reshape(X_train, (*X_train.shape, 1))
@@ -57,8 +101,7 @@ if __name__ == '__main__':
     y_test[y_test == 10] = 0
     y_test = np.reshape(y_test, (-1,))
 
-    cnn.set_data(X_train[:100], y_train[:100], X_test[:10], y_test[:10])
-    cnn.init_session()
-    cnn.train(batch_size=100, epochs=500)
-
-
+    # Train
+    model.set_data(X_train, y_train, X_test, y_test)
+    model.init_session()
+    model.train(batch_size=100, epochs=args.epochs[0])
