@@ -51,6 +51,29 @@ def make_cnn(model_path):
 
     return cnn
 
+def make_cnn2(model_path):
+    cnn = Model(model_path)
+
+    cnn.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Conv2D(32, (3, 3), activation='relu'),
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Conv2D(512, (3, 3), activation='relu'),
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Flatten(),
+            Dense(32 * 32, activation='relu'),
+            Dropout(0.5),
+            Dense(10),
+        ],
+        alpha=1e-4,
+    )
+
+    return cnn
+
 
 def make_lr(model_path):
     lr = Model(model_path)
@@ -71,7 +94,7 @@ if __name__ == '__main__':
 
      # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn'],
+    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'cnn2'],
                         required=True, help='Hidden layer size.')
     parser.add_argument('--path', type=str, nargs=1,
                         required=True, help='Model and output data save path.')
@@ -85,6 +108,8 @@ if __name__ == '__main__':
         model = make_nn(args.path[0])
     elif args.model[0] == 'cnn':
         model = make_cnn(args.path[0])
+    elif args.model[0] == 'cnn2':
+        model = make_cnn2(args.path[0])
     else:
         print('Wrong model name!')
         sys.exit(1)
@@ -92,8 +117,9 @@ if __name__ == '__main__':
     # Load data
     X_train, y_train, X_test, y_test = load_data()
 
-    X_train = np.reshape(X_train, (*X_train.shape, 1))
-    X_test = np.reshape(X_test, (*X_test.shape, 1))
+    # Reshape and normalize
+    X_train = np.reshape(X_train, (*X_train.shape, 1)) / 255.0
+    X_test = np.reshape(X_test, (*X_test.shape, 1)) / 255.0
 
     y_train[y_train == 10] = 0
     y_train = np.reshape(y_train, (-1,))
@@ -104,4 +130,4 @@ if __name__ == '__main__':
     # Train
     model.set_data(X_train, y_train, X_test, y_test)
     model.init_session()
-    model.train(batch_size=100, epochs=args.epochs[0])
+    model.train(batch_size=1000, epochs=args.epochs[0])

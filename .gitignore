@@ -2,5 +2,6 @@
 .env/
 __pycache__/
 __data__/
-__model__/
-__*__/
+model.ckpt*
+checkpoint
+train/
