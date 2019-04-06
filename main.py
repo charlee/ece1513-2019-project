@@ -129,26 +129,28 @@ def make_cnn4(model_path):
         image_shape=(32, 32, 1),
         n_classes=10,
         layers=[
-            Conv2D(64, (3, 3), activation='relu', batch_normal=(-1, -1)),      #1
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #2
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #3
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #4
-            MaxPooling2D((2, 2)),       # => 16x16
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #5
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #6
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #7
-            MaxPooling2D((2, 2)),       # => 8x8
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #8
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #9
-            MaxPooling2D((2, 2)),       # => 4x4
-            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #10
-            Conv2D(128, (1, 1), activation='relu', batch_normal=(-1, -1)),      #11
-            Conv2D(128, (1, 1), activation='relu', batch_normal=(-1, -1)),      #12
-            MaxPooling2D((2, 2)),       # => 2x2
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #1
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #2
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #3
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #4
+            MaxPooling2D((2, 2)),
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #5
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #6
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #7
+            MaxPooling2D((2, 2)),
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #8
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #9
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu', batch_normal=0.95),     #10
+            Conv2D(256, (1, 1), activation='relu', batch_normal=0.95),     #11
+            Conv2D(64, (1, 1), activation='relu', batch_normal=0.95),      #12
+            MaxPooling2D((2, 2)),
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #13
+            MaxPooling2D((2, 2)),
             Flatten(),
             Dense(10),
         ],
-        alpha=1e-4,
+        alpha=1e-3,
     )
 
     return cnn
