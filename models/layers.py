@@ -38,12 +38,17 @@ class Conv2D(Layer):
 
     counter = count(1)
 
-    def __init__(self, n_filters, kernel_size, strides=(1, 1), activation=None):
+    def __init__(self, n_filters, kernel_size, strides=(1, 1), activation=None, batch_normal=None):
+        """
+        :param batch_normal: Specify mean and var for batch normal. (-1, -1) will calculate automaticlaly using momentum on X.
+
+        """
         super().__init__(
             kernel_size=kernel_size,
             n_filters=n_filters,
             strides=strides,
             activation=activation,
+            batch_normal=batch_normal,
         )
 
     def fprop(self, X):
@@ -54,6 +59,13 @@ class Conv2D(Layer):
             strides = (1, *self.strides, 1)
 
             out = tf.nn.conv2d(X, self.W, strides=strides, padding='SAME') + self.b
+
+            if self.batch_normal is not None:
+                mean, avg = self.batch_normal
+                if mean == -1 and avg == -1:
+                    mean, var = tf.nn.moments(out, axes=[0])
+                out = tf.nn.batch_normalization(out, mean, var, None, None, 1e-9)
+
             if self.activation == 'relu':
                 out = tf.nn.relu(out)
 

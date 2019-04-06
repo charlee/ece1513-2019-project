@@ -58,14 +58,18 @@ def make_cnn2(model_path):
         image_shape=(32, 32, 1),
         n_classes=10,
         layers=[
+            Conv2D(16, (3, 3), activation='relu'),
             Conv2D(32, (3, 3), activation='relu'),
             BatchNorm(),
             MaxPooling2D((2, 2)),
-            Conv2D(512, (3, 3), activation='relu'),
+            Conv2D(64, (3, 3), activation='relu'),
+            Conv2D(128, (3, 3), activation='relu'),
             BatchNorm(),
             MaxPooling2D((2, 2)),
             Flatten(),
-            Dense(32 * 32, activation='relu'),
+            Dense(128, activation='relu'),
+            Dropout(0.5),
+            Dense(32, activation='relu'),
             Dropout(0.5),
             Dense(10),
         ],
@@ -74,6 +78,80 @@ def make_cnn2(model_path):
 
     return cnn
 
+def make_cnn3(model_path):
+    cnn = Model(model_path)
+
+    cnn.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Conv2D(64, (3, 3), activation='relu'),      #1
+            BatchNorm(),
+            Conv2D(128, (3, 3), activation='relu'),     #2
+            BatchNorm(),
+            Conv2D(128, (3, 3), activation='relu'),     #3
+            BatchNorm(),
+            Conv2D(128, (3, 3), activation='relu'),     #4
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu'),     #5
+            BatchNorm(),
+            Conv2D(128, (3, 3), activation='relu'),     #6
+            BatchNorm(),
+            Conv2D(128, (3, 3), activation='relu'),     #7
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu'),     #8
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu'),     #9
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu'),     #10
+            BatchNorm(),
+            MaxPooling2D((2, 2)),
+            Flatten(),
+            Dense(128, activation='relu'),
+            Dropout(0.5),
+            Dense(32, activation='relu'),
+            Dropout(0.5),
+            Dense(10),
+        ],
+        alpha=1e-4,
+    )
+
+    return cnn
+
+def make_cnn4(model_path):
+    cnn = Model(model_path)
+
+    cnn.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Conv2D(64, (3, 3), activation='relu', batch_normal=(-1, -1)),      #1
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #2
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #3
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #4
+            MaxPooling2D((2, 2)),       # => 16x16
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #5
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #6
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #7
+            MaxPooling2D((2, 2)),       # => 8x8
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #8
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #9
+            MaxPooling2D((2, 2)),       # => 4x4
+            Conv2D(128, (3, 3), activation='relu', batch_normal=(-1, -1)),      #10
+            Conv2D(128, (1, 1), activation='relu', batch_normal=(-1, -1)),      #11
+            Conv2D(128, (1, 1), activation='relu', batch_normal=(-1, -1)),      #12
+            MaxPooling2D((2, 2)),       # => 2x2
+            Flatten(),
+            Dense(10),
+        ],
+        alpha=1e-4,
+    )
+
+    return cnn
 
 def make_lr(model_path):
     lr = Model(model_path)
@@ -94,7 +172,7 @@ if __name__ == '__main__':
 
      # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'cnn2'],
+    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'cnn2', 'cnn3', 'cnn4'],
                         required=True, help='Hidden layer size.')
     parser.add_argument('--path', type=str, nargs=1,
                         required=True, help='Model and output data save path.')
@@ -110,6 +188,10 @@ if __name__ == '__main__':
         model = make_cnn(args.path[0])
     elif args.model[0] == 'cnn2':
         model = make_cnn2(args.path[0])
+    elif args.model[0] == 'cnn3':
+        model = make_cnn3(args.path[0])
+    elif args.model[0] == 'cnn4':
+        model = make_cnn4(args.path[0])
     else:
         print('Wrong model name!')
         sys.exit(1)
@@ -130,4 +212,4 @@ if __name__ == '__main__':
     # Train
     model.set_data(X_train, y_train, X_test, y_test)
     model.init_session()
-    model.train(batch_size=1000, epochs=args.epochs[0])
+    model.train(batch_size=100, epochs=args.epochs[0])
