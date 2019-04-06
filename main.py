@@ -180,6 +180,7 @@ if __name__ == '__main__':
                         required=True, help='Model and output data save path.')
     parser.add_argument('--epochs', type=int, nargs=1,
                         default=[200], help='Training epoches.')
+    parser.add_argument('--predict', action='store_true', help='Make prediction and plot confusion matrix.')
     args = parser.parse_args()
 
     if args.model[0] == 'lr':
@@ -214,4 +215,8 @@ if __name__ == '__main__':
     # Train
     model.set_data(X_train, y_train, X_test, y_test)
     model.init_session()
-    model.train(batch_size=100, epochs=args.epochs[0])
+
+    if args.predict:
+        y_ = model.run_predict()
+    else:
+        model.train(batch_size=100, epochs=args.epochs[0])
