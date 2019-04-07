@@ -149,6 +149,5 @@ if __name__ == '__main__':
         y_ = model.run_predict()
         plot_confusion_matrix(y_test, y_, labels, title='Confusion Matrix (model=%s)' % args.model[0])
         plt.savefig('%s/%s-cm.png' % (args.path[0], args.model[0]))
-        plt.show()
     else:
         model.train(batch_size=100, epochs=args.epochs[0])
