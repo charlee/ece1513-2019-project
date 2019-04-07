@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-for m in ['lr', 'nn', 'cnn', 'simplenet']:
+for m in ['lr', 'nn', 'cnn', 'simplenet', 'simplenet-dropout']:
     df = pd.read_csv('__model-%s__/loss.csv' % m)
     
     plt.figure(figsize=(4,3))

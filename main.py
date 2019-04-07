@@ -60,6 +60,39 @@ def make_simplenet(model_path):
         n_classes=10,
         layers=[
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #1
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #2
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #3
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #4
+            MaxPooling2D((2, 2)),
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #5
+            Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #6
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #7
+            MaxPooling2D((2, 2)),
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #8
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #9
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu', batch_normal=0.95),     #10
+            Conv2D(256, (1, 1), activation='relu', batch_normal=0.95),     #11
+            Conv2D(64, (1, 1), activation='relu', batch_normal=0.95),      #12
+            MaxPooling2D((2, 2)),
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #13
+            MaxPooling2D((2, 2)),
+            Flatten(),
+            Dense(10),
+        ],
+        alpha=1e-3,
+    )
+
+    return cnn
+
+def make_simplenet_dropout(model_path):
+    cnn = Model(model_path)
+
+    cnn.build_graph(
+        image_shape=(32, 32, 1),
+        n_classes=10,
+        layers=[
+            Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #1
             Dropout(0.8),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #2
             Dropout(0.8),
@@ -117,7 +150,7 @@ if __name__ == '__main__':
 
      # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'simplenet'],
+    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'simplenet', 'simplenet-dropout'],
                         required=True, help='Hidden layer size.')
     parser.add_argument('--path', type=str, nargs=1,
                         required=True, help='Model and output data save path.')
@@ -134,6 +167,8 @@ if __name__ == '__main__':
         model = make_cnn(args.path[0])
     elif args.model[0] == 'simplenet':
         model = make_simplenet(args.path[0])
+    elif args.model[0] == 'simplenet-dropout':
+        model = make_simplenet_dropout(args.path[0])
     else:
         print('Wrong model name!')
         sys.exit(1)
