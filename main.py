@@ -60,22 +60,35 @@ def make_simplenet(model_path):
         n_classes=10,
         layers=[
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #1
+            Dropout(0.8),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #2
+            Dropout(0.8),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #3
+            Dropout(0.8),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #4
+            Dropout(0.8),
             MaxPooling2D((2, 2)),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #5
+            Dropout(0.8),
             Conv2D(32, (3, 3), activation='relu', batch_normal=0.95),      #6
+            Dropout(0.8),
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #7
+            Dropout(0.8),
             MaxPooling2D((2, 2)),
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #8
+            Dropout(0.8),
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #9
+            Dropout(0.8),
             MaxPooling2D((2, 2)),
             Conv2D(128, (3, 3), activation='relu', batch_normal=0.95),     #10
+            Dropout(0.8),
             Conv2D(256, (1, 1), activation='relu', batch_normal=0.95),     #11
+            Dropout(0.8),
             Conv2D(64, (1, 1), activation='relu', batch_normal=0.95),      #12
+            Dropout(0.8),
             MaxPooling2D((2, 2)),
             Conv2D(64, (3, 3), activation='relu', batch_normal=0.95),      #13
+            Dropout(0.8),
             MaxPooling2D((2, 2)),
             Flatten(),
             Dense(10),

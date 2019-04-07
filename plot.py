@@ -16,8 +16,8 @@ for m in ['lr', 'nn', 'cnn', 'simplenet']:
     plt.savefig('__model-%s__/%s-loss.png' % (m, m))
 
     plt.figure(figsize=(4,3))
-    plt.plot(df.index, df.train_accuracy, label='train')
-    plt.plot(df.index, df.test_accuracy, label='test')
+    plt.plot(df.index, 1 - df.train_accuracy, label='train')
+    plt.plot(df.index, 1 - df.test_accuracy, label='test')
     plt.legend()
     plt.title('Train / test error (model=%s)' % m)
     plt.xlabel('epoch')
