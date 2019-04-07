@@ -24,8 +24,12 @@ class Model:
     def set_phase(self, phase):
         self.phase = phase
 
-    def _next_batch(self, X, y, batch_size):
-        shuffled_X, shuffled_y = self._shuffle(X, y)
+    def _next_batch(self, X, y, batch_size, shuffle=True):
+        if shuffle:
+            shuffled_X, shuffled_y = self._shuffle(X, y)
+        else:
+            shuffled_X, shuffled_y = X, y
+
         n_batch = int(np.ceil(len(X) / batch_size))
         for i in range(n_batch):
             start = batch_size * i
@@ -206,3 +210,14 @@ class Model:
                 'test_accuracy': test_accuracy,
             }, print_log=True)
             self.perf_logger.save(self.loss_file)
+
+    def run_predict(self, batch_size=100):
+        y_ = []
+        for X, y in self._next_batch(self.testData, self.testTarget, batch_size):
+            feed_dict = self.get_feed_dict(X, y, 'test', shuffle=False)
+            y_.append(self.sess.run(
+                self.predict,
+                feed_dict=self.get_feed_dict(X_batch, y_batch, 'test')
+            ))
+
+        return np.vstack(y_)
