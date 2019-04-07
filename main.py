@@ -25,7 +25,7 @@ def make_nn(model_path):
             Dense(32 * 32, activation='relu'),
             Dense(10),
         ],
-        alpha=1e-3,
+        alpha=1e-4,
     )
 
     return nn

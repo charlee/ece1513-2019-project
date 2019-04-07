@@ -63,9 +63,13 @@ class Model:
                 reg = tf.add_n([tf.nn.l2_loss(W) for W in weights if W is not None])
                 self.loss = loss + l2 * reg
 
-    def make_optimizer(self, learning_rate):
+    def make_optimizer(self, alpha):
+        self.learning_rate = tf.Variable(alpha)
+        self.recalc_learning_rate = self.learning_rate.assign(
+            alpha / (tf.pow(10.0, tf.floor(self.epoch / 100)))
+        )
         with tf.name_scope('optimize'):
-            self.opt_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
+            self.opt_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
 
     def make_predict(self, X):
         with tf.name_scope('predict'):
@@ -99,6 +103,10 @@ class Model:
 
         X = self.fprop()
 
+        # Create a tensor to store epoch so that global epoch can be saved in checkpoint
+        self.epoch = tf.get_variable('epoch', shape=(), initializer=tf.zeros_initializer)
+        self.inc_epoch = self.epoch.assign(self.epoch + 1)
+
         self.make_softmax_loss(X, l2)
         self.make_predict(X)
         self.make_optimizer(alpha)
@@ -125,10 +133,6 @@ class Model:
     def init_session(self):
         """Start a new training session.
         """
-        # Create a tensor to store epoch so that global epoch can be saved in checkpoint
-        self.epoch = tf.get_variable('epoch', shape=(), initializer=tf.zeros_initializer)
-        self.inc_epoch = self.epoch.assign(self.epoch + 1)
-
         tf.set_random_seed(421)
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -153,6 +157,7 @@ class Model:
         :param with_tensorboard: Whether output data for displaying in tensorboard.
         """
         self.perf_logger = PerfLogger([
+            'learning_rate',
             'train_loss', 'train_accuracy',
             'test_loss', 'test_accuracy',
         ])
@@ -191,19 +196,21 @@ class Model:
         """
 
         epoch = self.sess.run(self.inc_epoch)
+        learning_rate = self.sess.run(self.recalc_learning_rate)
 
         for X, y in self._next_batch(self.trainData, self.trainTarget, batch_size):
 
             feed_dict = self.get_feed_dict(X, y, 'train')
             self.sess.run(self.opt_op, feed_dict=feed_dict)
 
-        if epoch < 20 or epoch % 10 == 0:
+        if epoch == 1 or epoch % 5 == 0:
             # Compute train / test loss / accuracy
             train_loss, train_accuracy = self.compute_loss_accuracy(self.trainData, self.trainTarget)
             test_loss, test_accuracy = self.compute_loss_accuracy(self.testData, self.testTarget)
 
             # Save to PerfLogger
             self.perf_logger.append(epoch, {
+                'learning_rate': learning_rate,
                 'train_loss': train_loss,
                 'train_accuracy': train_accuracy,
                 'test_loss': test_loss,
