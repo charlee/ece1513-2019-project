@@ -193,7 +193,7 @@ class Model:
             feed_dict = self.get_feed_dict(X, y, 'train')
             self.sess.run(self.opt_op, feed_dict=feed_dict)
 
-        if epoch % 10 == 0:
+        if epoch < 20 or epoch % 10 == 0:
             # Compute train / test loss / accuracy
             train_loss, train_accuracy = self.compute_loss_accuracy(self.trainData, self.trainTarget)
             test_loss, test_accuracy = self.compute_loss_accuracy(self.testData, self.testTarget)

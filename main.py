@@ -25,7 +25,7 @@ def make_nn(model_path):
             Dense(32 * 32, activation='relu'),
             Dense(10),
         ],
-        alpha=1e-4,
+        alpha=1e-3,
     )
 
     return nn
@@ -42,11 +42,11 @@ def make_cnn(model_path):
             BatchNorm(),
             MaxPooling2D((2, 2)),
             Flatten(),
-            Dense(32 * 32, activation='relu'),
+            Dense(128, activation='relu'),
             Dropout(0.5),
             Dense(10),
         ],
-        alpha=1e-4,
+        alpha=1e-3,
     )
 
     return cnn
@@ -164,7 +164,7 @@ def make_lr(model_path):
             Flatten(),
             Dense(10),
         ],
-        alpha=1e-4
+        alpha=1e-3
     )
 
     return lr
