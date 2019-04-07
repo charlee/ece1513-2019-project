@@ -51,78 +51,8 @@ def make_cnn(model_path):
 
     return cnn
 
-def make_cnn2(model_path):
-    cnn = Model(model_path)
 
-    cnn.build_graph(
-        image_shape=(32, 32, 1),
-        n_classes=10,
-        layers=[
-            Conv2D(16, (3, 3), activation='relu'),
-            Conv2D(32, (3, 3), activation='relu'),
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Conv2D(64, (3, 3), activation='relu'),
-            Conv2D(128, (3, 3), activation='relu'),
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(128, activation='relu'),
-            Dropout(0.5),
-            Dense(32, activation='relu'),
-            Dropout(0.5),
-            Dense(10),
-        ],
-        alpha=1e-4,
-    )
-
-    return cnn
-
-def make_cnn3(model_path):
-    cnn = Model(model_path)
-
-    cnn.build_graph(
-        image_shape=(32, 32, 1),
-        n_classes=10,
-        layers=[
-            Conv2D(64, (3, 3), activation='relu'),      #1
-            BatchNorm(),
-            Conv2D(128, (3, 3), activation='relu'),     #2
-            BatchNorm(),
-            Conv2D(128, (3, 3), activation='relu'),     #3
-            BatchNorm(),
-            Conv2D(128, (3, 3), activation='relu'),     #4
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Conv2D(128, (3, 3), activation='relu'),     #5
-            BatchNorm(),
-            Conv2D(128, (3, 3), activation='relu'),     #6
-            BatchNorm(),
-            Conv2D(128, (3, 3), activation='relu'),     #7
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Conv2D(128, (3, 3), activation='relu'),     #8
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Conv2D(128, (3, 3), activation='relu'),     #9
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Conv2D(128, (3, 3), activation='relu'),     #10
-            BatchNorm(),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(128, activation='relu'),
-            Dropout(0.5),
-            Dense(32, activation='relu'),
-            Dropout(0.5),
-            Dense(10),
-        ],
-        alpha=1e-4,
-    )
-
-    return cnn
-
-def make_cnn4(model_path):
+def make_simplenet(model_path):
     cnn = Model(model_path)
 
     cnn.build_graph(
@@ -174,7 +104,7 @@ if __name__ == '__main__':
 
      # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'cnn2', 'cnn3', 'cnn4'],
+    parser.add_argument('--model', type=str, nargs=1, choices=['lr', 'cnn', 'nn', 'simplenet'],
                         required=True, help='Hidden layer size.')
     parser.add_argument('--path', type=str, nargs=1,
                         required=True, help='Model and output data save path.')
@@ -189,12 +119,8 @@ if __name__ == '__main__':
         model = make_nn(args.path[0])
     elif args.model[0] == 'cnn':
         model = make_cnn(args.path[0])
-    elif args.model[0] == 'cnn2':
-        model = make_cnn2(args.path[0])
-    elif args.model[0] == 'cnn3':
-        model = make_cnn3(args.path[0])
-    elif args.model[0] == 'cnn4':
-        model = make_cnn4(args.path[0])
+    elif args.model[0] == 'simplenet':
+        model = make_simplenet(args.path[0])
     else:
         print('Wrong model name!')
         sys.exit(1)
@@ -217,6 +143,12 @@ if __name__ == '__main__':
     model.init_session()
 
     if args.predict:
+        from cm import plot_confusion_matrix
+        import matplotlib.pyplot as plt
+        labels = np.array([str(i) for i in range(10)])
         y_ = model.run_predict()
+        plot_confusion_matrix(y_test, y_, labels, title='Confusion Matrix (model=%s)' % args.model[0])
+        plt.savefig('%s/%s-cm.png' % (args.path[0], args.model[0]))
+        plt.show()
     else:
         model.train(batch_size=100, epochs=args.epochs[0])

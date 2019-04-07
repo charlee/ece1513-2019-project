@@ -212,12 +212,9 @@ class Model:
             self.perf_logger.save(self.loss_file)
 
     def run_predict(self, batch_size=100):
-        y_ = []
-        for X, y in self._next_batch(self.testData, self.testTarget, batch_size):
-            feed_dict = self.get_feed_dict(X, y, 'test', shuffle=False)
-            y_.append(self.sess.run(
+        return np.hstack([
+            self.sess.run(
                 self.predict,
-                feed_dict=self.get_feed_dict(X_batch, y_batch, 'test')
-            ))
-
-        return np.vstack(y_)
+                feed_dict=self.get_feed_dict(X, y, 'test')
+            ) for X, y in self._next_batch(self.testData, self.testTarget, batch_size, shuffle=False)
+        ])
