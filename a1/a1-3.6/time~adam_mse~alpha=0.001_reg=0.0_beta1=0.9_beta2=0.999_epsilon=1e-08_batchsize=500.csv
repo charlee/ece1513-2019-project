@@ -1,0 +1,9 @@
+optimizer=adam
+loss_type=mse
+alpha=0.001
+reg=0.0
+beta1=0.9
+beta2=0.999
+epsilon=1e-08
+batchsize=500
+time=119.126292

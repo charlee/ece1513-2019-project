@@ -1,0 +1,189 @@
+\documentclass{article}
+\usepackage[landscape]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing}
+
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+
+\title{Introduction to Machine Learning Cheatsheet}
+\usepackage[utf8]{inputenc}
+
+\advance\topmargin-.8in
+\advance\textheight3in
+\advance\textwidth3in
+\advance\oddsidemargin-1.5in
+\advance\evensidemargin-1.5in
+\parindent0pt
+\parskip2pt
+
+% New commands
+\newcommand{\hr}{\centerline{\rule{3.5in}{1pt}}}
+\newcommand{\dd}[2]{\frac{d#1}{d#2}}
+\newcommand{\pardd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\sign}{\textbf{sign}}
+\newcommand{\transpose}{^\intercal}
+\newcommand{\nmean}{\frac{1}{N}\sum_{n=1}^N}
+\newcommand{\indicator}{\mathbb{I}}
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+
+\setitemize{itemsep=0pt,topsep=2pt,parsep=1pt,partopsep=2pt}
+\setenumerate{itemsep=0pt,topsep=2pt,parsep=1pt,partopsep=2pt}
+\setlist{leftmargin=12pt}
+
+
+%\colorbox[HTML]{e4e4e4}{\makebox[\textwidth-2\fboxsep][l]{texto}
+
+\begin{document}
+
+\begin{multicols*}{3}
+\begin{center}{\textbf{Introduction to Machine Learning Cheatsheet}}\\
+\end{center}
+
+\tikzstyle{mybox} = [draw=black, fill=white, very thick,
+    rectangle, rounded corners, inner sep=10pt, inner ysep=10pt]
+\tikzstyle{fancytitle} =[fill=black, text=white, font=\bfseries]
+
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+        \begin{multicols}{2}
+            $$\textbf{ReLU}(x) = \max(x, 0)$$
+            $$\textbf{sigmoid: }\theta(z) = \frac{1}{1+ e^{-z}}$$
+            $$\textbf{CE}(t, s) = - \nmean t \log s$$
+            $$\textbf{softmax:}\delta(\textbf{z})_j = \frac{e^{z_j}}{\sum_{k=1}^K e^{z_k}} $$
+            $$\tanh(s) = \frac{e^s - e^{-s}}{e^s + e^{-s}}$$
+        \end{multicols}
+    \end{minipage}
+};
+\node[fancytitle, right=10pt] at (box.north west) {Functions};
+\end{tikzpicture}
+
+
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+        \begin{multicols}{2}
+            $$(f\cdot g)' = f'g + fg'$$
+            $$\Big(\frac{f}{g}\Big)' = \frac{f'g - fg'}{g^2}$$
+            $$(e^x)' = e^x$$
+            $$(\log x)' = 1/x$$
+            $$\text{ReLU}(x)' = \begin{cases}1,x>0 \\ 0,x<0\end{cases}$$
+            $$\tanh '(s) = 1 - \tanh^2(s)$$
+        \end{multicols}
+        $$\text{chain rule: }\dd{}{x} f(g(x)) = \dd{f(g)}{g} \cdot \dd{g(x)}{x}$$
+        $$\text{sigmoid: } \dd{\theta(x)}{x} = \theta(x)(1-\theta(x))$$
+        $$\text{CE: } \dd{}{x} \textbf{CE}(t, s) = -t / s$$
+        $$\text{softmax: }\pardd{\delta(\textbf{z})}{z_j} = \begin{cases} z_i (1-z_j) &, i=j \\ -z_i z_j &, i\neq j \end{cases}$$
+        $$\text{sigmoid-CE: } \pardd{L}{w_j} = -y_j(1-y)$$
+        $$\text{softmax-CE: } \pardd{L}{w_j} = \hat{y}_j - y_j$$
+    \end{minipage}
+};
+\node[fancytitle, right=10pt] at (box.north west) {Derivatives};
+\end{tikzpicture}
+
+\vfill\null
+\columnbreak
+
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+        \textbf{Perceptron} \\
+        \emph{Params}: $\textbf{w}=(w_0, \cdots, w_d) \in \mathbb{R}^{d+1}$ \\
+        \emph{Hypothesis}: $\hat{y} = h_w(\textbf{x}) = \sign (\textbf{w} \transpose x)$\\
+        \emph{Loss}: $E_{in}(\textbf{w}) = \nmean \indicator \{ y_n \neq \hat{y}_n \}$\\
+        \hr \\
+        \textbf{Linear Regression} \\
+        \emph{Params}: $\textbf{w} = (w_0, \cdots, w_n) \in \mathbb{R}^{d+1}$ \\
+        \emph{Hypothesis}: $\hat{y} = \textbf{X} \transpose \textbf{w}$ \\
+        \emph{Loss}(MSE): \\ $E_{in}(\textbf{w}) = \frac{1}{N} \norm{\textbf{y} - \hat{\textbf{y}}} ^ 2 = \nmean (y_n - \hat{y}_n)^2 $ \\
+        \emph{Optimize}: $\textbf{w}^* = \argmin_{\textbf{w} \in \mathbb{R}^{d+1}} E_{in}(\textbf{w}) $  \\
+        \emph{Solution}: $\textbf{w}_{LS} = (\textbf{X} \transpose \textbf{X}) ^{-1} \textbf{X} \transpose \textbf{y} $ \\
+        \hr \\
+        \textbf{Linear Regression w/ Regularization} \\
+        \emph{Optimize}: $\textbf{w}^* = \argmin_{\textbf{w} \in \mathbb{R}^{d+1}} \{ E_{in}(\textbf{w}) + \lambda \norm{\textbf{w}}^2 \}$  \\
+        \emph{Solution}: $\textbf{w}_{LS} = (\textbf{X} \transpose \textbf{X} + \lambda \textbf{I}) ^{-1} \textbf{X} \transpose \textbf{y} $ \\
+        \hr \\
+        \textbf{Logistic Regression (binary)} \\
+        $\hat{P}_\textbf{w}(y | \textbf{x}) = \frac{e^{y\textbf{w} \transpose \textbf{x}}}{1 + e^{y\textbf{w}\transpose \textbf{x}}} $ \\
+        \emph{Loss}: ``logloss'' $\nmean \big(-\log\hat{P}_\textbf{w}(y | \textbf{x})\big) $ \\
+        $= \nmean \log(1+e^{-y_n\textbf{w}\transpose \textbf{x}_n})$
+    \end{minipage}
+};
+\node[fancytitle, right=10pt] at (box.north west) {Models};
+\end{tikzpicture}
+
+\vfill\null
+\columnbreak
+
+
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+        \textbf{PLA}
+        \begin{enumerate}
+            \item Check if $E_{in}(\textbf{w}) = 0$, STOP if yes
+            \item Use \emph{mis-classified} $(\textbf{x}_n, y_n)$, update $\textbf{w} \gets \textbf{w} + y_n\textbf{x}_n$.
+        \end{enumerate}
+        \hr 
+        \textbf{Pocket} \\
+        Initialize $\textbf{w}$ \\
+        \textbf{for}$t = 0, 1, \cdots, T-1$ \textbf{do} \\
+        \begin{enumerate}
+            \item Run PLA for one update to obtain $\textbf{w}(t+1)$
+            \item Evaulate $E_{in}(\textbf{w}(t+1))$
+            \item \textbf{if} $E_{in}(\textbf{w}(t+1)) < E_{in}(\textbf{w})$ \textbf{then} $\textbf{w} \gets \textbf{w}(t+1)$
+        \end{enumerate}
+        \hr
+        \textbf{SGD}
+        \begin{enumerate}
+            \item $\textbf{g}_t = \nabla e_n (\textbf{w}_t)$
+            \item $\textbf{w}_{t+1} = \textbf{w}_t - \epsilon \textbf{g}_t$
+        \end{enumerate}
+        \hr
+        \textbf{SGD w/ Momentum}
+        \begin{enumerate}
+            \item $\textbf{g}_t = \nabla e_n (\textbf{w}_t)$
+            \item $\textbf{v}_t = -\epsilon_t \textbf{g}_t + \mu \textbf{v}_{t-1}$ ($\textbf{v}_0=0, \mu \approx 0.9$)
+            \item $\textbf{w}_{t+1} = \textbf{w}_t + \textbf{v}_t$
+        \end{enumerate}
+        \hr
+        \textbf{Neskrov Momentum}
+        \begin{enumerate}
+            \item $\textbf{v}_t = \mu \textbf{v}_{t_1} - \epsilon_t \nabla e_n(\textbf{w}_t + \mu \textbf{v}_{t-1})$
+            \item $\textbf{w}_{t+1} = \textbf{w}_t + \textbf{v}_t = \textbf{w}_t + \mu \textbf{v}_{t-1} - \epsilon_t \nabla e_n(\cdot)$
+        \end{enumerate}
+        \hr
+        \textbf{NN Complexity} \\
+        \# of compulations = $\sum_l(d^{(l-1)+1})\cdot d_{(l)} + \sum_l d^{(l)}$ \\
+        = \# of edges + \# of nodes$ = Q + V \approx Q$. \\
+        \hr \\
+        \textbf{Back Propagation} \\
+        To compute $\pardd{e(\Omega)}{w_{i,j}^{(l)}}$:
+        \begin{enumerate}
+            \item $\pardd{e(\Omega)}{w_{i,j}^{(l)}} = \pardd{e(\Omega)}{s_j^{(l)}} \cdot \pardd{s_j^{(l)}}{w_{i,j}^{(l)}} = \delta_j \cdot x_i^{(l-1)}$
+            \item $\delta_j$: Backward message at node $j$ in layer $l$
+            \item Intermediate: $\delta_j = \pardd{e(\Omega)}{x_i^{(l)}} \cdot \pardd{x_i^{(l)}}{s_i^{(l)}} = \pardd{e(\Omega)}{x_i^{(l)}} \cdot \theta'(s_i^{(l)})$
+            \item $\pardd{e(\Omega)}{x_i^{(l)}} = \sum_{j=1}^{d^{(l+1)}} \pardd{e(\Omega)}{s_j^{(l+1)}} \cdot \pardd{s_j^{(l+1)}}{x_i^{(l)}} = \sum \delta_j^{(l+1)} \cdot w_{i,j}^{(l+1)}.$
+            \item $\theta_i^{(l)} = \big( \sum \theta_j^{(l+1)} \cdot w_{i,j}^{(l+1)} \big) \cdot \theta'(s_i^{(l)}).$
+        \end{enumerate}
+
+
+    \end{minipage}
+};
+\node[fancytitle, right=10pt] at (box.north west) {Algorithms};
+\end{tikzpicture}
+
+\end{multicols*}
+\end{document}
